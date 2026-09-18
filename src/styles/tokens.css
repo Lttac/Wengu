@@ -52,7 +52,7 @@
      卡片要比底色亮，玻璃才「浮」得起來；底色太白＋玻璃太透＝卡片和背景糊成一片。 */
   --glass-fill: rgba(255, 255, 255, 0.66);
   --glass-fill-strong: rgba(255, 255, 255, 0.82);
-  --glass-fill-solid: rgba(255, 255, 255, 0.95);
+  --glass-fill-solid: #ffffff;
   --glass-rim: rgba(255, 255, 255, 0.75);
   --glass-sheen: rgba(255, 255, 255, 0.30);
   --glass-sheen-none: rgba(255, 255, 255, 0);
@@ -108,7 +108,7 @@ html.dark {
 
   --glass-fill: rgba(38, 40, 48, 0.55);
   --glass-fill-strong: rgba(48, 50, 58, 0.72);
-  --glass-fill-solid: rgba(44, 46, 54, 0.95);
+  --glass-fill-solid: #2f3139;
   --glass-rim: rgba(255, 255, 255, 0.16);
   --glass-sheen: rgba(255, 255, 255, 0.06);
   --glass-specular: rgba(255, 255, 255, 0.14);

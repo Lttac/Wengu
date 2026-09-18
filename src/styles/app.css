@@ -441,13 +441,12 @@ html.dark .field-select option { background: #1c1c1e; color: #f2f2f7; }
   gap: 2px;
   border: 1px solid var(--glass-rim);
   border-radius: var(--r-md);
-  /* 選單裡的每一行都要讀得清楚，所以用最厚的一檔：
-     保留 backdrop blur（讓滲進來的那 5% 是糊的而不是字的邊緣），但把填充拉到 95%。
-     iOS 的菜單材質也是這樣——比卡片厚得多。 */
+  /* 選單是壓在內容上的「紙」，不是背景的一部分：填充完全不透明。
+     原本寫 95%，截圖比對後發現粗體深色字在淺底上、5% 就足以看出灰影，
+     像沒擦乾淨。玻璃感改由描邊、上緣高光與陰影承擔。
+     既然填充不透明，backdrop-filter 就沒有作用，直接不加（省一層合成）。 */
   background-color: var(--glass-fill-solid);
   background-image: linear-gradient(140deg, var(--glass-sheen), var(--glass-sheen-none) 45%);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
   box-shadow: var(--specular), var(--shadow-2);
   animation: select-in var(--dur-2) var(--ease-spring-soft);
 }

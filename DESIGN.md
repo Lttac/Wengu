@@ -34,9 +34,9 @@ colors:
   neutral-soft: "rgba(120,120,128,0.16)"
   glass-fill: "rgba(255,255,255,0.66)"
   glass-fill-strong: "rgba(255,255,255,0.82)"
-  glass-fill-solid: "rgba(255,255,255,0.95)"
+  glass-fill-solid: "#ffffff"
   glass-fill-dark: "rgba(38,40,48,0.55)"
-  glass-fill-solid-dark: "rgba(44,46,54,0.95)"
+  glass-fill-solid-dark: "#2f3139"
   glass-rim: "rgba(255,255,255,0.75)"
   glass-rim-dark: "rgba(255,255,255,0.16)"
   glass-sheen: "rgba(255,255,255,0.30)"
@@ -222,7 +222,7 @@ components:
 |---|---|---|
 | `{colors.glass-fill}` | `rgba(255,255,255,0.66)` | 卡片本體——**比底色亮**，卡片才浮得起來 |
 | `{colors.glass-fill-strong}` | `rgba(255,255,255,0.82)` | 浮動控制——需要更實的層（圖示鈕、藥丸鈕） |
-| `{colors.glass-fill-solid}` | `rgba(255,255,255,0.95)` | 選單、彈出層——**裡面的字必須讀得清楚**，不讓底下的畫面滲上來 |
+| `{colors.glass-fill-solid}` | `#ffffff` | 選單、彈出層——**完全不透明**，底下的畫面一點都不該滲上來 |
 | `{colors.field-fill}` | `rgba(120,120,128,0.12)` | 凹陷層——輸入框、下拉、進度軌道 |
 | `{colors.hairline}` | `rgba(60,60,67,0.16)` | 分隔線，僅用於同一張卡內部的分組 |
 
@@ -234,7 +234,7 @@ components:
 
 **四檔怎麼選**：卡片與控制項是「背景的一部分」，可以透；**選單與彈出層是「壓在內容上的另一張紙」**，裡面的字必須在任何背景上都讀得清楚，所以用最厚的 `{colors.glass-fill-solid}`。判斷準則很簡單——**這個表面上的字是拿來讀的，還是拿來看的**，前者用 solid。
 
-厚材質仍然保留 `backdrop-filter`：滲進來的那 5% 要是糊的，不能是底下文字的邊緣。模糊與高不透明度是兩件事，iOS 的菜單材質兩者都有。
+這一檔**不做半透明**。原本寫成 95%，實測（截圖比對）後發現：粗體深色字在淺底上，5% 的滲透仍然看得出灰影，像沒擦乾淨。選單既然是「紙」，就把它做成紙——玻璃感交給描邊、上緣高光與陰影。填充不透明之後 `backdrop-filter` 就沒有作用，因此選單不使用它。
 
 ### Text
 
@@ -499,7 +499,7 @@ JS 只負責把 `--scroll-y` / `--title-scale` / `--header-glass` 寫進 `:root`
 - **select-menu** —— 原生 `<select>` 的展開清單由作業系統繪製（灰底、系統字體、圓角與陰影都不歸我們管），與玻璃材質完全衝突，所以一律換成自製下拉：
   - **原生 `<select>` 留在 DOM 裡當唯一事實來源**，只是視覺上藏起來。程式照舊寫 `select.value`、照舊監聽 `change`——「換皮不動商業邏輯」是這個元件的硬約束，也是它值得獨立成一個模組的理由。
   - 展開鈕沿用 `field-inset` 的外觀；右側 chevron 展開時轉 180°，用 `--ease-spring-snap`。
-  - 清單是玻璃面板：`{colors.glass-fill-strong}` + `{colors.glass-rim}` + 上緣高光 + 深度 Level 2，圓角 `{rounded.md}`；選中項用 `{colors.accent-deep}` 加一個勾。
+  - 清單是**不透明**面板：`{colors.glass-fill-solid}` + `{colors.glass-rim}` 描邊 + 上緣高光 `{colors.glass-specular}` + 深度 Level 2，圓角 `{rounded.md}`；選中項用 `{colors.accent-deep}` 加一個勾。
   - 選項最小高度 40px；清單最高 `min(300px, 45dvh)`，並加 `overscroll-behavior: contain`，否則捲到底會把整頁帶著跑。
   - 開合 260ms + `--ease-spring-soft`；Esc 關閉、方向鍵移動、點外面關閉。
   - **展開時要把所屬卡片抬起來**：`.glass-card:has(.select[data-open="true"]) { z-index: 30; }`。玻璃用 `backdrop-filter`，它會建立新的堆疊上下文——選單的 `z-index` 只在「自己那張卡」裡有效，後面的卡片會整張蓋上來把選單吃掉。用 `:has()` 而不是 JS 記錄，狀態自動跟著 `data-open` 走。
