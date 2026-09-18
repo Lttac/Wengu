@@ -161,8 +161,10 @@ export function createRenderer({ store, toasts, handlers = {}, doc = globalThis.
 
       const isRevealed = revealed.has(item.id);
       const explanation = explanations.get(item.id);
+      // 從沒複習過的卡片 interval 是 0，寫「間隔 0 天」等於沒說；直接標成新卡
+      const metaKey = item.interval > 0 ? "today.meta" : "today.metaNew";
       const meta = showMeta
-        ? `<span class="meta">${escapeHtml(t("today.meta", { interval: item.interval, ease: item.easeFactor.toFixed(2) }))}</span>`
+        ? `<span class="meta">${escapeHtml(t(metaKey, { interval: item.interval, ease: item.easeFactor.toFixed(2) }))}</span>`
         : "";
       const rateButtons = TONES.map(({ tone, quality, label }) => '<button type="button" class="btn btn-tint"'
         + ` data-tone="${tone}" data-action="rate" data-id="${item.id}" data-quality="${quality}">`

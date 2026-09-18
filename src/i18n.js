@@ -39,6 +39,7 @@ const DICT = {
     "today.reveal": "顯示答案",
     "today.hide": "隱藏答案",
     "today.meta": "間隔 {interval} 天 · 難度 {ease}",
+    "today.metaNew": "新卡 · 難度 {ease}",
     "today.empty": "還沒有卡片，先在上面新增一張",
 
     "rating.again": "不會",
@@ -182,6 +183,7 @@ const DICT = {
     "today.reveal": "显示答案",
     "today.hide": "隐藏答案",
     "today.meta": "间隔 {interval} 天 · 难度 {ease}",
+    "today.metaNew": "新卡 · 难度 {ease}",
     "today.empty": "还没有卡片，先在上面添加一张",
 
     "rating.again": "不会",
@@ -324,7 +326,8 @@ const DICT = {
     "today.done": "All done for today",
     "today.reveal": "Show answer",
     "today.hide": "Hide answer",
-    "today.meta": "every {interval}d · ease {ease}",
+    "today.meta": "{interval}-day interval · ease {ease}",
+    "today.metaNew": "new · ease {ease}",
     "today.empty": "No cards yet — add one above",
 
     "rating.again": "Again",
@@ -512,4 +515,15 @@ export function applyStatic(root = globalThis.document, locale = current) {
 
 export function hasKey(key) {
   return Boolean(DICT[current]?.[key] ?? DICT[FALLBACK_LOCALE]?.[key]);
+}
+
+/** 所有語系出現過的 key（聯集），用來檢查翻譯有沒有漏 */
+export function allKeys() {
+  return [...new Set(Object.values(DICT).flatMap((dict) => Object.keys(dict)))].sort();
+}
+
+/** 某個語系缺少的 key。回傳空陣列才代表這個語系是完整的。 */
+export function missingKeys(locale = current) {
+  const dict = DICT[locale] || {};
+  return allKeys().filter((key) => !(key in dict));
 }

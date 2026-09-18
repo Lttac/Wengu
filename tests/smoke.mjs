@@ -151,22 +151,14 @@ window.Element.prototype.hasPointerCapture = function hasPointerCapture(pointerI
   eq("簡體分類標籤", categoryLabel("數學"), "数学");
   setLocale("en");
 
-  // 三個語系的 key 必須完全一致，否則切換語系會出現半英半中
+  // 三個語系的 key 必須完全一致，否則切換語系會出現半英半中。
+  // 全量比對（不是抽查幾個 key）——漏翻譯就是這樣漏的。
   const dicts = await import("../src/i18n.js");
-  const keysOf = (locale) => {
-    setLocale(locale);
-    const keys = [];
-    const probe = ["app.title", "today.count", "settings.title", "ai.generate", "toast.undo",
-      "rating.again", "manage.stats", "settings.about.privacy", "ai.error.network", "compose.add"];
-    for (const key of probe) {
-      setLocale(locale);
-      keys.push(dicts.hasKey(key));
-    }
-    return keys;
-  };
-  check("三個語系都具備關鍵字串",
-    LOCALES.every((l) => keysOf(l.id).every(Boolean)),
-    JSON.stringify(LOCALES.map((l) => [l.id, keysOf(l.id)])));
+  for (const locale of LOCALES) {
+    eq(`${locale.id} 沒有漏翻譯`, dicts.missingKeys(locale.id).join(", "), "");
+  }
+  // 純粹是防呆：字典被誤刪或合併失敗時，數量會掉得很明顯
+  check("全庫 key 數量合理", dicts.allKeys().length > 100, String(dicts.allKeys().length));
 
   setLocale("zh-Hant");
   applyStatic(globalThis.document);
@@ -385,8 +377,11 @@ window.Element.prototype.hasPointerCapture = function hasPointerCapture(pointerI
   renderer.render();
   eq("今日任務出現一張卡", qa(".task-card").length, 1);
   eq("管理列表出現一列", qa(".row-card").length, 1);
-  check("任務數文案", q("#taskCount").textContent.includes("1"));
-  eq("進度條寬度", q("#progressBar").style.width, "0%");
+check("任務數文案", q("#taskCount").textContent.includes("1"));
+eq("進度條寬度", q("#progressBar").style.width, "0%");
+// 新卡的 interval 是 0，meta 要標成「新卡」而不是「間隔 0 天 / 0-day interval」
+check("新卡的 meta 標成新卡", q(".task-card .meta")?.textContent.includes("新卡"),
+  q(".task-card .meta")?.textContent);
 
   renderer.toggleReveal(item.id);
   check("揭示答案加上 class", q(`[data-answer-for="${item.id}"]`).classList.contains("is-revealed"));
