@@ -57,8 +57,13 @@ npx serve .                   # 或任何靜態伺服器
 **部署到 GitHub Pages**：
 
 1. 推到 GitHub（預設分支 `main`）。
-2. 倉庫 Settings → Pages → Source 選 **GitHub Actions**。
-3. 已附 `.github/workflows/pages.yml`，推上去就會自動部署。
+2. 倉庫 **Settings → Pages → Source** 選 **Deploy from a branch**。
+3. 分支選 `main`、資料夾選 `/ (root)`，存檔。一兩分鐘後就會在
+   `https://<你的帳號>.github.io/<倉庫名>/` 上線。
+
+這是純靜態站、沒有建置步驟，所以不需要 Actions ——也就不需要給你的推送權杖
+`workflow` 權限。（想改用 Actions 自動部署的話，自己加一份
+`.github/workflows/pages.yml` 即可。）
 
 > 想改成 `使用者名稱.github.io/專案名/` 這種子路徑也不用改程式——所有資源都是相對路徑。
 
@@ -173,7 +178,7 @@ npx serve .                   # 或任何靜態伺服器
 │       ├── settings.js         設定面板
 │       ├── ai.js               AI 生成與解釋
 │       └── toast.js            吐司（含撤銷）
-├── tests/smoke.mjs             冒煙測試（110 項）
+├── tests/smoke.mjs             冒煙測試（194 項）
 ├── scripts/
 │   ├── serve.mjs               本機靜態伺服器
 │   ├── gen-spring.mjs          彈簧曲線產生器 → src/styles/spring.css
@@ -187,7 +192,7 @@ npx serve .                   # 或任何靜態伺服器
 
 ```bash
 npm install          # 只裝測試用的 jsdom，執行時不需要任何依賴
-npm test             # 110 項冒煙測試：純邏輯 + 把整個 app 掛進 jsdom 跑一遍流程
+npm test             # 194 項冒煙測試：純邏輯 + 把整個 app 掛進 jsdom 跑一遍流程
 npm run serve        # 本機預覽
 npm run lint         # 設計文件 + 自訂屬性 + 對比度，一次驗完
 npm run lint:design  # 檢查 DESIGN.md 是否還和程式碼對得上
@@ -230,7 +235,7 @@ npm run lint:contrast # 依實際堆疊順序算每一組前景／背景的 WCAG
 - **Accessible by default.** Honors `prefers-reduced-motion` and `prefers-reduced-transparency`; all touch targets are at least 44px.
 
 ```bash
-npm install && npm test    # 110 smoke tests
+npm install && npm test    # 194 smoke tests
 npm run serve              # http://localhost:4173/
 ```
 
