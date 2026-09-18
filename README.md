@@ -9,6 +9,24 @@
 > 一個資料夾就能跑，也可以直接部署到 GitHub Pages。
 > English summary at the [bottom](#english).
 
+## 畫面
+
+![淺色模式](docs/screenshots/home-light.png)
+
+左上是輸入區（問題／答案／科目），下面是今天到期的卡片：每張卡有題目、顯示答案、四個評分，以及一條今日進度。整個介面是玻璃材質——卡片浮在有顏色的壁紙上，上緣有一道高光。
+
+| 深色模式 | 分類下拉 |
+|---|---|
+| ![深色模式](docs/screenshots/home-dark.png) | ![分類下拉](docs/screenshots/select-light.png) |
+
+| AI 生成卡片 | 設定 |
+|---|---|
+| ![AI 生成卡片](docs/screenshots/ai-dialog.png) | ![設定](docs/screenshots/settings-light.png) |
+
+下拉選單是自製的（原生 `<select>` 的展開清單由作業系統繪製，跟玻璃材質衝突）；貼一段筆記就能讓模型拆成卡片；設定裡有外觀、語言、複習行為、科目、AI 與資料。
+
+> 這些截圖不是手拍的：`npm run shots` 會用示範資料重跑一遍並重新產生（走 Chrome DevTools Protocol，不需要額外安裝瀏覽器）。改動 UI 之後重跑就好。
+
 ---
 
 ## 為什麼是這樣做的

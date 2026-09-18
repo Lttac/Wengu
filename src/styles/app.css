@@ -508,6 +508,8 @@ html.dark .field-select option { background: #1c1c1e; color: #f2f2f7; }
 }
 .task-answer {
   margin: 0;
+  min-height: 0;
+  overflow: hidden;
   padding: var(--s-2) var(--s-3);
   border-radius: var(--r-xs);
   background: var(--success-soft);
@@ -521,6 +523,16 @@ html.dark .field-select option { background: #1c1c1e; color: #f2f2f7; }
               filter var(--dur-2) var(--ease);
 }
 .task-answer.is-revealed { opacity: 1; transform: none; filter: none; }
+
+/* 收起的答案不該佔高度。原本只把 opacity 調成 0，元素仍留在版面裡，
+   每張卡在題目和按鈕之間就多出一大塊空白（截圖看出來的）。
+   grid-template-rows 0fr ↔ 1fr 可以對「auto 高度」做轉場，不必寫死 max-height。 */
+.answer-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-2) var(--ease-spring);
+}
+.answer-collapse:has(.task-answer.is-revealed) { grid-template-rows: 1fr; }
 
 .row-head {
   display: flex;

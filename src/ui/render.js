@@ -171,7 +171,9 @@ export function createRenderer({ store, toasts, handlers = {}, doc = globalThis.
         + `<span class="swipe-hint" data-dir="left" aria-hidden="true">${escapeHtml(t("rating.again"))}</span>`
         + `<span class="swipe-hint" data-dir="right" aria-hidden="true">${escapeHtml(t("rating.easy"))}</span>`
         + `<p class="task-question">${escapeHtml(item.question)}</p>`
+        + '<div class="answer-collapse">'
         + `<p class="task-answer${isRevealed ? " is-revealed" : ""}" data-answer-for="${item.id}">${escapeHtml(item.answer)}</p>`
+        + "</div>"
         + '<div class="btn-row">'
         + `<button type="button" class="btn btn-quiet" data-action="reveal" data-id="${item.id}">`
         + `${escapeHtml(isRevealed ? t("today.hide") : t("today.reveal"))}</button>`

@@ -69,11 +69,11 @@
 
   /* 壁紙 */
   --canvas: #eef1f6;
-  --wallpaper-1: #d6e4f6;
-  --wallpaper-2: #e6dff5;
-  --wallpaper-3: #f2e4d9;
-  --wallpaper-4: #d9ecf3;
-  --blob-opacity: 0.55;
+  --wallpaper-1: #c6dcf8;
+  --wallpaper-2: #dcd0f6;
+  --wallpaper-3: #f8dcc4;
+  --wallpaper-4: #c6e8f6;
+  --blob-opacity: 0.72;
 
   --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 
@@ -124,7 +124,7 @@ html.dark {
   --wallpaper-2: #221a3d;
   --wallpaper-3: #0d2f36;
   --wallpaper-4: #1a1030;
-  --blob-opacity: 0.38;
+  --blob-opacity: 0.55;
 
   --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398989d' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }

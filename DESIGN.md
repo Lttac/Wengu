@@ -48,10 +48,10 @@ colors:
   hairline: "rgba(60,60,67,0.16)"
   hairline-dark: "rgba(255,255,255,0.14)"
   focus-ring: "rgba(0,122,255,0.25)"
-  wallpaper-1: "#d6e4f6"
-  wallpaper-2: "#e6dff5"
-  wallpaper-3: "#f2e4d9"
-  wallpaper-4: "#d9ecf3"
+  wallpaper-1: "#c6dcf8"
+  wallpaper-2: "#dcd0f6"
+  wallpaper-3: "#f8dcc4"
+  wallpaper-4: "#c6e8f6"
   wallpaper-1-dark: "#101a33"
   wallpaper-2-dark: "#221a3d"
   wallpaper-3-dark: "#0d2f36"
@@ -262,11 +262,11 @@ components:
 
 ### Wallpaper
 
-`{colors.wallpaper-1}` (`#d6e4f6`) / `{colors.wallpaper-2}` (`#e6dff5`) / `{colors.wallpaper-3}` (`#f2e4d9`) / `{colors.wallpaper-4}` (`#d9ecf3`) 四團柔光疊在 `{colors.canvas}` (`#eef1f6`) 上，`blur(70px)`、不透明度 0.55。三條規則：
+`{colors.wallpaper-1}` (`#c6dcf8`) / `{colors.wallpaper-2}` (`#dcd0f6`) / `{colors.wallpaper-3}` (`#f8dcc4`) / `{colors.wallpaper-4}` (`#c6e8f6`) 四團柔光疊在 `{colors.canvas}` (`#eef1f6`) 上，`blur(70px)`、不透明度 0.72（深色 0.55）。三條規則：
 
 1. **底色接近中性**。`{colors.canvas}` 是冷灰不是淡藍——iOS 的系統藍／綠／紅是設計來坐在近中性底上的，底色一藍，淺綠色的「簡單」和紅色的「不會」馬上變髒。
 2. **最多一個暖色**。四團裡只有 `{colors.wallpaper-3}` 是暖的（沙色），負責把整體從醫院藍拉回來。舊版的粉紅 `#ffd9e8` 會在頁面中段和藍混成灰紫，正好糊在「今日必須複習」底下。
-3. **不透明度壓在 0.55**。玻璃是半透明的，底下越吵，卡片越糊。
+3. **不透明度抓在中間**。這一檔來回調過兩次，都記在這裡：太高（0.75、色相又雜）會讓卡片底下發灰紫；太低（0.55）整頁讀成一片平坦的灰，玻璃沒有東西可折射。最後停在 0.72——**要看得見顏色，但看不出色塊的邊**。快速判斷法：把截圖縮到 25%，如果背景看起來是灰色，就是太低了。
 
 壁紙只做背景：它是玻璃的內容，不承載任何資訊，因此不允許出現文字、圖示或高對比圖形。深色外觀改用 `{colors.wallpaper-1-dark}` / `{colors.wallpaper-2-dark}` / `{colors.wallpaper-3-dark}` / `{colors.wallpaper-4-dark}` 疊在 `{colors.canvas-dark}` (`#05070d`) 上——深色下玻璃要沉，光暈強度減半。
 
@@ -494,6 +494,7 @@ JS 只負責把 `--scroll-y` / `--title-scale` / `--header-glass` 寫進 `:root`
 - **field-inset** —— 文字輸入與下拉。凹陷感：`{colors.field-fill}` 底 + `inset 0 1px 2px rgba(0,0,0,0.06)`，沒有描邊（有描邊就變成按鈕了）。圓角 `{rounded.sm}`，內距 `{spacing.sm}` `{spacing.md}`，最小高度 44px，字級 `{typography.field}`。
   - focus：底色轉 `{colors.glass-fill-strong}`，描邊轉 `{colors.accent}`，外加 `0 0 0 4px {colors.focus-ring}` 光環。
   - 下拉：`appearance: none`，右側自繪 12px chevron SVG（用 `background-image`），右內距留 `{spacing.xxl}`。
+- **answer-collapse** —— 答案區的收合容器。**收起的內容不可以佔高度**：外層 `display: grid` + `grid-template-rows: 0fr ↔ 1fr` 做轉場，內層 `min-height: 0; overflow: hidden`。只把 `opacity` 調成 0 的話元素仍留在版面裡，每張卡在題目和按鈕之間會多出一大塊空白（截圖看出來的：卡片因此虛胖、一屏少看兩張）。不用 `max-height`——寫死數值會讓短答案的轉場時間對不上。
 - **chip-category** —— 分類標籤。`{colors.accent-soft}` 底 + `{colors.accent-deep}` 字 + `{typography.caption-strong}` + `{rounded.capsule}`，內距 2px 8px。它是唯一的彩色文字元素，因此一屏內不超過 6 個。
 
 - **select-menu** —— 原生 `<select>` 的展開清單由作業系統繪製（灰底、系統字體、圓角與陰影都不歸我們管），與玻璃材質完全衝突，所以一律換成自製下拉：
