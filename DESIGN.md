@@ -435,6 +435,8 @@ SF Pro 是 Apple 系統字，網頁無法授權使用。CSS 字體堆疊必須�
 - **未達門檻要彈回，而且要看得見**：`--ease-spring-bounce` 的 8% 過衝在 60px 的回彈上是 5px——這一下才是「活」的感覺來源。
 - **手勢比點按容易誤判，所以完成後給一次撤銷**，把評分前的排程原樣寫回去。
 - 拖曳中卡片要**抬起**（`--shadow-3`）、稍微**傾斜**（`dx × 0.028deg`），並用 `::before` 鋪一層方向色——這三件事同時發生才像實體。
+- **方向色要克制**：蒙層不透明度上限 `0.45`（原本 0.85）。截圖對照過——0.85 會把題目和按鈕染到讀不清，那已經不是「提示」而是「蓋掉」。
+- **提示膠囊出現在卡片讓出來的那塊空隙裡**，不是跟著卡片跑。跟著卡片跑的話，垂直置中會正好壓在評分按鈕上（截圖看出來的）。做法是每張卡包一層 `.task-slot`（`position: relative`），提示是卡片的兄弟節點、`z-index` 低於卡片；`--swipe` 同時寫在卡片與 slot 上，兩者才會同步。
 
 ### 捲動連動（Scroll-Linked）
 
@@ -585,6 +587,7 @@ JS 只負責把 `--scroll-y` / `--title-scale` / `--header-glass` 寫進 `:root`
 - ❌ 不要用 `left` / `top` 做位移動畫（用 `transform`），也不要把 switch 滑塊做成方形。
 - ❌ 不要在 `prefers-reduced-motion` 下凍結 `spinner`。
 - ❌ 不要把分類 id 翻成其他語言——那是資料，翻了就對不上既有卡片。
+- ❌ 不要用 `{colors.success-text}` 這種「完成」的語意色去寫中性訊息。空的狀態分兩種：**「還沒有卡片」「搜不到符合的」是中性灰**（`{colors.mute}`），只有**「今天已全部完成」才是綠的**（`.empty[data-tone="done"]`）。
 - ❌ 不要把 `hidden` 屬性當成「一定會隱藏」：`display: flex` / `inline-flex` 這類規則的特異性高於 UA 的 `[hidden] { display: none }`，元素就會一直顯示。專案用一條全域 `[hidden] { display: none !important }` 擋住這個坑（自製下拉、AI 欄位、AI 生成按鈕都中過）。
 - ❌ 不要以為「浮動元素給了高 z-index 就會在上面」：任何祖先只要建立了堆疊上下文（`backdrop-filter`、`filter`、`transform`、`isolation`…），裡面的 z-index 就只在那個上下文內有效。本專案的玻璃卡片全都是這種祖先。
 - ❌ 不要拿 fill 支當文字色（`#34C759` 綠字壓在 16% 淡綠底上只有約 2:1）。

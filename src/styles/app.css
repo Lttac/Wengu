@@ -204,7 +204,7 @@ html.dark .task-card::after {
 }
 .task-card.swiping,
 .task-card.swiping * { user-select: none; }
-.task-card.swiping::before { opacity: calc(var(--swipe, 0) * 0.85); }
+.task-card.swiping::before { opacity: calc(var(--swipe, 0) * 0.45); }
 .task-card.swiping-left::before {
   background: radial-gradient(240px circle at 80% 50%,
               color-mix(in srgb, var(--danger) 45%, transparent), var(--danger-soft) 72%);
@@ -214,9 +214,15 @@ html.dark .task-card::after {
               color-mix(in srgb, var(--success) 45%, transparent), var(--success-soft) 72%);
 }
 
+/* 提示要出現在「卡片讓出來的那塊空隙」裡，不是跟著卡片跑——
+   跟著卡片跑的話，垂直置中會正好壓在評分按鈕上（截圖看出來的）。
+   所以它是卡片的兄弟節點，掛在 slot 上，卡片滑開後才露出來。 */
+.task-slot { position: relative; }
+.task-slot > .task-card { z-index: 1; }
 .swipe-hint {
   position: absolute;
   top: 50%;
+  z-index: 0;
   padding: 5px var(--s-3);
   border-radius: var(--r-capsule);
   font-size: 13px;
@@ -228,8 +234,8 @@ html.dark .task-card::after {
 }
 .swipe-hint[data-dir="left"]  { right: var(--s-4); background: var(--danger-soft);  color: var(--danger-text); }
 .swipe-hint[data-dir="right"] { left: var(--s-4);  background: var(--success-soft); color: var(--success-text); }
-.task-card.swiping-left  .swipe-hint[data-dir="left"]  { opacity: var(--swipe, 0); }
-.task-card.swiping-right .swipe-hint[data-dir="right"] { opacity: var(--swipe, 0); }
+.task-slot:has(.task-card.swiping-left)  .swipe-hint[data-dir="left"]  { opacity: var(--swipe, 0); }
+.task-slot:has(.task-card.swiping-right) .swipe-hint[data-dir="right"] { opacity: var(--swipe, 0); }
 
 /* 懸停：玻璃輕輕浮起（僅精細指標）。寫在拖拽規則之前，讓 .dragging 勝出。 */
 @media (hover: hover) and (pointer: fine) {
@@ -545,11 +551,13 @@ html.dark .field-select option { background: #1c1c1e; color: #f2f2f7; }
   display: flex;
   align-items: center;
   gap: var(--s-2);
-  color: var(--success-text);
+  /* 預設中性：綠色在語意上代表「完成」，不該用在「還沒有卡片」「搜不到」上 */
+  color: var(--mute);
   font-size: 15px;
   line-height: 20px;
   animation: rise var(--dur-3) var(--ease-spring-soft) both;
 }
+.empty[data-tone="done"] { color: var(--success-text); }
 .empty .icon path {
   stroke-dasharray: 26;
   stroke-dashoffset: 26;
@@ -950,6 +958,7 @@ html.dark .field-select option { background: #1c1c1e; color: #f2f2f7; }
 .subject-tag { flex: none; font-size: 12px; line-height: 16px; color: var(--mute); }
 .subject-add { display: flex; align-items: center; gap: var(--s-2); }
 .subject-add .field { flex: 1 1 auto; min-width: 0; }
+.subject-add .btn { flex: none; white-space: nowrap; }
 .subject-status:empty { display: none; }
 
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: var(--s-2); }

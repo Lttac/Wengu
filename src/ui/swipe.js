@@ -58,6 +58,8 @@ export function mountSwipe({ root, onCommit, doc = globalThis.document } = {}) {
 
     drag.card.style.transform = `translate3d(${offset}px, 0, 0) rotate(${(offset * 0.028).toFixed(2)}deg)`;
     drag.card.style.setProperty("--swipe", progress.toFixed(3));
+    // 提示膠囊在卡片外面（slot 上），要讓它也拿到同一個進度值
+    drag.card.parentElement?.style.setProperty("--swipe", progress.toFixed(3));
     // 閃光起點跟著手指，顏色像是從按下去的地方漫出來
     drag.card.style.setProperty("--fx", `${Math.round(event.clientX - rect.left)}px`);
     drag.card.style.setProperty("--fy", `${Math.round(event.clientY - rect.top)}px`);
@@ -106,10 +108,16 @@ export function mountSwipe({ root, onCommit, doc = globalThis.document } = {}) {
     }
   }
 
-  /** 把卡片恢復成「什麼都沒發生」的樣子。任何收尾失敗都走這裡。 */
-  function resetCard(card) {
+  /** 清掉滑動狀態（樣式與給提示膠囊用的 --swipe），但保留 transform 讓動畫接下去跑 */
+  function clearSwipeState(card) {
     card.classList.remove("swiping", "swiping-left", "swiping-right");
     card.style.removeProperty("--swipe");
+    card.parentElement?.style.removeProperty("--swipe");
+  }
+
+  /** 把卡片恢復成「什麼都沒發生」的樣子。任何收尾失敗都走這裡。 */
+  function resetCard(card) {
+    clearSwipeState(card);
     card.style.removeProperty("transform");
     card.style.removeProperty("--fx");
     card.style.removeProperty("--fy");
@@ -147,8 +155,7 @@ export function mountSwipe({ root, onCommit, doc = globalThis.document } = {}) {
       const passed = Math.abs(current.dx) > COMMIT_PX || Math.abs(velocity) > COMMIT_VELOCITY;
 
       releaseCapture(current.card, current.pointerId);
-      current.card.classList.remove("swiping", "swiping-left", "swiping-right");
-      current.card.style.removeProperty("--swipe");
+      clearSwipeState(current.card);
 
       if (!passed) {
         springBack(current.card, current.dx);

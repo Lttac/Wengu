@@ -142,7 +142,7 @@ export function createRenderer({ store, toasts, handlers = {}, doc = globalThis.
     }
 
     if (!due.length) {
-      nodes.taskList.innerHTML = '<p class="empty">'
+      nodes.taskList.innerHTML = '<p class="empty" data-tone="done">'
         + '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6.5 9.6 17 4 11.4"/></svg>'
         + `${escapeHtml(t("today.done"))}</p>`;
       return;
@@ -156,6 +156,8 @@ export function createRenderer({ store, toasts, handlers = {}, doc = globalThis.
       card.className = "task-card";
       card.id = `task-card-${item.id}`;
       card.dataset.id = String(item.id);
+      const slot = doc.createElement("div");
+      slot.className = "task-slot";
 
       const isRevealed = revealed.has(item.id);
       const explanation = explanations.get(item.id);
@@ -168,8 +170,6 @@ export function createRenderer({ store, toasts, handlers = {}, doc = globalThis.
 
       card.innerHTML = '<div class="row-head">'
         + `<span class="chip">${escapeHtml(subjectLabel(item.category))}</span>${meta}</div>`
-        + `<span class="swipe-hint" data-dir="left" aria-hidden="true">${escapeHtml(t("rating.again"))}</span>`
-        + `<span class="swipe-hint" data-dir="right" aria-hidden="true">${escapeHtml(t("rating.easy"))}</span>`
         + `<p class="task-question">${escapeHtml(item.question)}</p>`
         + '<div class="answer-collapse">'
         + `<p class="task-answer${isRevealed ? " is-revealed" : ""}" data-answer-for="${item.id}">${escapeHtml(item.answer)}</p>`
@@ -183,7 +183,10 @@ export function createRenderer({ store, toasts, handlers = {}, doc = globalThis.
         + `<div class="btn-row btn-row-rate">${rateButtons}</div>`
         + (explanation ? renderExplanation(item.id, explanation) : "");
 
-      nodes.taskList.appendChild(card);
+      slot.innerHTML = `<span class="swipe-hint" data-dir="left" aria-hidden="true">${escapeHtml(t("rating.again"))}</span>`
+        + `<span class="swipe-hint" data-dir="right" aria-hidden="true">${escapeHtml(t("rating.easy"))}</span>`;
+      slot.prepend(card);
+      nodes.taskList.appendChild(slot);
       if (!seenTasks.has(item.id)) {
         seenTasks.add(item.id);
         animateIn(card, Math.min(index, 6) * 45);
