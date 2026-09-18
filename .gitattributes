@@ -1,0 +1,8 @@
+# 倉庫內統一使用 LF，避免跨平台協作時整檔 diff
+* text=auto
+*.sh text eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.png binary
+*.ico binary
+*.woff2 binary

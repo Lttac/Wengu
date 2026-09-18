@@ -1,0 +1,130 @@
+/* Design tokens
+   數值的單一來源。改這裡就會同時改到 CSS 與 JS 動畫（見 README 的設計系統一節）。 */
+
+:root {
+  /* 排版 —— SF Pro 由系統提供，Windows 落到 Segoe UI Variable */
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text",
+             "Segoe UI", system-ui, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+
+  /* 圓角（同心規則：子元素 = 父元素 − 父內距） */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --r-capsule: 9999px;
+
+  /* 間距（4px 基準） */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+
+  /* 文字 */
+  --ink: #1c1c1e;
+  --body: #3a3a3c;
+  --mute: #6b6f78;
+
+  /* 強調與語意
+     每個語意色分兩支：fill（填充、圖示、開關）與 text（文字）。
+     淺色底上的文字一律用 text 支——Apple 自己也是這樣分的，
+     #34C759 是填充色，文字要用更深的 #248A3D 那一支。 */
+  --accent: #007aff;
+  --accent-deep: #0060df;
+  --accent-soft: rgba(0, 122, 255, 0.14);
+  --on-accent: #ffffff;
+  --success: #34c759;
+  --success-text: #1f7a34;
+  --warning: #ff9500;
+  --warning-text: #8f5600;
+  --danger: #ff3b30;
+  --danger-text: #c0271c;
+  --neutral-soft: rgba(120, 120, 128, 0.16);
+  --success-soft: rgba(52, 199, 89, 0.16);
+  --warning-soft: rgba(255, 149, 0, 0.16);
+  --danger-soft: rgba(255, 59, 48, 0.16);
+  --focus-ring: rgba(0, 122, 255, 0.25);
+
+  /* 玻璃四檔
+     卡片要比底色亮，玻璃才「浮」得起來；底色太白＋玻璃太透＝卡片和背景糊成一片。 */
+  --glass-fill: rgba(255, 255, 255, 0.66);
+  --glass-fill-strong: rgba(255, 255, 255, 0.82);
+  --glass-fill-solid: rgba(255, 255, 255, 0.95);
+  --glass-rim: rgba(255, 255, 255, 0.75);
+  --glass-sheen: rgba(255, 255, 255, 0.30);
+  --glass-sheen-none: rgba(255, 255, 255, 0);
+  --glass-specular: rgba(255, 255, 255, 0.85);
+  --field-fill: rgba(120, 120, 128, 0.12);
+  --hairline: rgba(60, 60, 67, 0.16);
+
+  /* 陰影三檔：inset 高光 + 環境陰影 + 接觸陰影 */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.10), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-3: 0 20px 50px rgba(0, 0, 0, 0.16);
+  --specular: inset 0 1px 0 var(--glass-specular);
+  --glass-blur: blur(24px) saturate(180%);
+
+  /* 壁紙 */
+  --canvas: #eef1f6;
+  --wallpaper-1: #d6e4f6;
+  --wallpaper-2: #e6dff5;
+  --wallpaper-3: #f2e4d9;
+  --wallpaper-4: #d9ecf3;
+  --blob-opacity: 0.55;
+
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+
+  /* 動效曲線：iOS 的減速曲線，不是彈跳 */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-1: 160ms;
+  --dur-2: 260ms;
+  --dur-3: 420ms;
+  --dur-4: 400ms;
+}
+
+html.dark {
+  --ink: #f2f2f7;
+  --body: #ebebf0;
+  --mute: #98989d;
+
+  --accent: #0a84ff;
+  --accent-deep: #409cff;
+  --accent-soft: rgba(10, 132, 255, 0.20);
+  --success: #30d158;
+  --success-text: #30d158;
+  --warning: #ff9f0a;
+  --warning-text: #ff9f0a;
+  --danger: #ff453a;
+  --danger-text: #ff7069;
+  --neutral-soft: rgba(120, 120, 128, 0.24);
+  --success-soft: rgba(48, 209, 88, 0.18);
+  --warning-soft: rgba(255, 159, 10, 0.18);
+  --danger-soft: rgba(255, 69, 58, 0.18);
+  --focus-ring: rgba(10, 132, 255, 0.30);
+
+  --glass-fill: rgba(38, 40, 48, 0.55);
+  --glass-fill-strong: rgba(48, 50, 58, 0.72);
+  --glass-fill-solid: rgba(44, 46, 54, 0.95);
+  --glass-rim: rgba(255, 255, 255, 0.16);
+  --glass-sheen: rgba(255, 255, 255, 0.06);
+  --glass-specular: rgba(255, 255, 255, 0.14);
+  --field-fill: rgba(120, 120, 128, 0.24);
+  --hairline: rgba(255, 255, 255, 0.14);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.40), 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-3: 0 20px 50px rgba(0, 0, 0, 0.50);
+
+  --canvas: #05070d;
+  --wallpaper-1: #101a33;
+  --wallpaper-2: #221a3d;
+  --wallpaper-3: #0d2f36;
+  --wallpaper-4: #1a1030;
+  --blob-opacity: 0.38;
+
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398989d' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}

@@ -1,0 +1,20 @@
+{
+  "name": "wengu",
+  "version": "1.0.0",
+  "private": true,
+  "description": "溫故 — 本地優先的間隔複習卡片。液態玻璃介面、零建構、可選接入 LLM 出題與講解。",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/smoke.mjs",
+    "serve": "node scripts/serve.mjs",
+    "lint:design": "node scripts/check-design.mjs",
+    "lint:tokens": "node scripts/check-tokens.mjs",
+    "lint:contrast": "node scripts/check-contrast.mjs",
+    "lint": "npm run lint:design && npm run lint:tokens && npm run lint:contrast"
+  },
+  "keywords": ["spaced-repetition", "flashcards", "srs", "liquid-glass", "llm"],
+  "license": "MIT",
+  "devDependencies": {
+    "jsdom": "^30.0.0"
+  }
+}

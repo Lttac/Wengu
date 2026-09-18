@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#eef3fb">
+<title>智能複習助手 — iOS 26 液態玻璃</title>
+<style>
+/* ==========================================================================
+   智能複習助手 — Liquid Glass (iOS 26)
+   token 定義見同目錄 DESIGN.md；本檔不引用任何外部資源，可離線執行。
+   玻璃三件套：半透明填充 + 1px 暖白描邊 + inset 上緣高光。
+   ========================================================================== */
+
+:root {
+  /* 排版 —— SF Pro 由系統提供，Windows 落到 Segoe UI Variable */
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text",
+             "Segoe UI", system-ui, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+
+  /* 圓角（同心規則：子元素 = 父元素 − 父內距） */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --r-capsule: 9999px;
+
+  /* 間距（4px 基準） */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+
+  /* 文字 */
+  --ink: #1c1c1e;
+  --body: #3a3a3c;
+  --mute: #8e8e93;
+
+  /* 強調與語意 */
+  --accent: #007aff;
+  --accent-deep: #0060df;
+  --accent-soft: rgba(0, 122, 255, 0.15);
+  --on-accent: #ffffff;
+  --success: #34c759;
+  --warning: #ff9500;
+  --danger: #ff3b30;
+  --neutral-soft: rgba(120, 120, 128, 0.16);
+  --success-soft: rgba(52, 199, 89, 0.16);
+  --warning-soft: rgba(255, 149, 0, 0.16);
+  --danger-soft: rgba(255, 59, 48, 0.16);
+  --focus-ring: rgba(0, 122, 255, 0.25);
+
+  /* 玻璃四檔 */
+  --glass-fill: rgba(255, 255, 255, 0.55);
+  --glass-fill-strong: rgba(255, 255, 255, 0.72);
+  --glass-rim: rgba(255, 255, 255, 0.70);
+  --glass-sheen: rgba(255, 255, 255, 0.45);
+  --glass-sheen-none: rgba(255, 255, 255, 0);
+  --field-fill: rgba(120, 120, 128, 0.12);
+  --hairline: rgba(60, 60, 67, 0.18);
+
+  /* 陰影三檔：inset 高光 + 環境陰影 + 接觸陰影 */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.10), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-3: 0 20px 50px rgba(0, 0, 0, 0.16);
+  --specular: inset 0 1px 0 var(--glass-sheen);
+  --glass-blur: blur(24px) saturate(180%);
+
+  /* 壁紙 */
+  --canvas: #eef3fb;
+  --wallpaper-1: #cfe4ff;
+  --wallpaper-2: #e3d6ff;
+  --wallpaper-3: #ffd9e8;
+  --wallpaper-4: #cdf1ff;
+  --blob-opacity: 0.75;
+
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+
+  /* 動效曲線：iOS 的減速曲線，不是彈跳 */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-1: 120ms;
+  --dur-2: 220ms;
+  --dur-3: 320ms;
+  --dur-4: 400ms;
+}
+
+html.dark {
+  --ink: #f2f2f7;
+  --body: #ebebf0;
+  --mute: #98989d;
+
+  --accent: #0a84ff;
+  --accent-deep: #409cff;
+  --accent-soft: rgba(10, 132, 255, 0.20);
+  --success: #30d158;
+  --warning: #ff9f0a;
+  --danger: #ff453a;
+  --neutral-soft: rgba(120, 120, 128, 0.24);
+  --success-soft: rgba(48, 209, 88, 0.18);
+  --warning-soft: rgba(255, 159, 10, 0.18);
+  --danger-soft: rgba(255, 69, 58, 0.18);
+  --focus-ring: rgba(10, 132, 255, 0.30);
+
+  --glass-fill: rgba(38, 40, 48, 0.55);
+  --glass-fill-strong: rgba(48, 50, 58, 0.72);
+  --glass-rim: rgba(255, 255, 255, 0.16);
+  --glass-sheen: rgba(255, 255, 255, 0.08);
+  --field-fill: rgba(120, 120, 128, 0.24);
+  --hairline: rgba(255, 255, 255, 0.14);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.40), 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-3: 0 20px 50px rgba(0, 0, 0, 0.50);
+
+  --canvas: #05070d;
+  --wallpaper-1: #101a33;
+  --wallpaper-2: #221a3d;
+  --wallpaper-3: #0d2f36;
+  --wallpaper-4: #1a1030;
+  --blob-opacity: 0.38;
+
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398989d' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 17px;
+  line-height: 22px;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color var(--dur-4) var(--ease), color var(--dur-4) var(--ease);
+}
+
+/* 數字對齊：列表滾動時不讓數字左右跳 */
+.tnum, .meta, .chip { font-variant-numeric: tabular-nums; }
+
+/* --- 招牌組件 1：折射壁紙 ------------------------------------------------ */
+.wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--canvas);
+  transition: background-color var(--dur-4) var(--ease);
+}
+.wallpaper span {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: var(--blob-opacity);
+  transition: opacity var(--dur-4) var(--ease);
+}
+.wallpaper .blob-1 { width: 60vw; height: 60vw; background: var(--wallpaper-1); top: -14vw; left: -12vw; }
+.wallpaper .blob-2 { width: 55vw; height: 55vw; background: var(--wallpaper-2); top: 22vh; right: -18vw; }
+.wallpaper .blob-3 { width: 50vw; height: 50vw; background: var(--wallpaper-3); top: 58vh; left: -10vw; }
+.wallpaper .blob-4 { width: 45vw; height: 45vw; background: var(--wallpaper-4); bottom: -16vw; right: 4vw; }
+
+/* --- 骨架 ---------------------------------------------------------------- */
+.shell {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: calc(var(--s-5) + env(safe-area-inset-top)) var(--s-4)
+           calc(var(--s-8) + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+
+.app-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-1) var(--s-1) 0;
+}
+
+.large-title {
+  margin: 0;
+  font-size: 34px;
+  line-height: 41px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+
+/* --- 玻璃三件套 ---------------------------------------------------------- */
+.glass-card,
+.task-card,
+.row-card,
+.btn,
+.icon-button {
+  background-color: var(--glass-fill);
+  background-image: linear-gradient(140deg, var(--glass-sheen), var(--glass-sheen-none) 45%);
+  border: 1px solid var(--glass-rim);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+.glass-card {
+  border-radius: var(--r-xl);
+  padding: var(--s-4);
+  box-shadow: var(--specular), var(--shadow-2);
+}
+
+.task-card,
+.row-card {
+  border-radius: var(--r-lg);
+  padding: var(--s-4);
+  box-shadow: var(--specular), var(--shadow-1);
+}
+
+/* 卡片為 ::before（評分閃光）與 ::after（跟隨光斑）提供定位 */
+.glass-card, .task-card, .row-card { position: relative; }
+
+/* 光斑：玻璃接住移動中的光源——這是液態玻璃「對動態有反應」的那一半。
+   指針位置由 JS 寫進 --mx/--my，離開時 --hi 歸零淡出。 */
+.glass-card, .task-card { --mx: 50%; --my: 0px; --hi: 0; }
+.glass-card::after,
+.task-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(220px circle at var(--mx) var(--my),
+              rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0) 68%);
+  opacity: var(--hi);
+  transition: opacity var(--dur-2) var(--ease);
+}
+html.dark .glass-card::after,
+html.dark .task-card::after {
+  background: radial-gradient(220px circle at var(--mx) var(--my),
+              rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 68%);
+}
+
+/* 評分閃光：語意色先亮一下，告訴你「這一按生效了」，卡片才離場 */
+.task-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+}
+.task-card.flash-danger::before  { background: var(--danger-soft);  animation: flash var(--dur-3) var(--ease) both; }
+.task-card.flash-warning::before { background: var(--warning-soft); animation: flash var(--dur-3) var(--ease) both; }
+.task-card.flash-neutral::before { background: var(--neutral-soft); animation: flash var(--dur-3) var(--ease) both; }
+.task-card.flash-success::before { background: var(--success-soft); animation: flash var(--dur-3) var(--ease) both; }
+@keyframes flash { 0% { opacity: 0; } 35% { opacity: 1; } 100% { opacity: 0; } }
+
+/* 懸停：玻璃輕輕浮起（僅精細指標）。寫在拖拽規則之前，讓 .dragging 勝出。 */
+@media (hover: hover) and (pointer: fine) {
+  .task-card, .row-card {
+    transition: transform var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
+  }
+  .task-card:hover, .row-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--specular), var(--shadow-2);
+  }
+}
+
+/* 卡片內節奏：相鄰元素 8px */
+.card-stack > * + *,
+.task-card > * + *,
+.row-card > * + * { margin-top: var(--s-2); }
+
+/* 卡片區塊之間 12px（標題／工具列／列表／統計） */
+.glass-card > * + * { margin-top: var(--s-3); }
+
+/* --- 卡片標題 ------------------------------------------------------------ */
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-3);
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--ink);
+}
+.icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.icon-button .icon { width: 20px; height: 20px; }
+
+/* --- 按鈕 ---------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-1);
+  min-height: 44px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-capsule);
+  background-color: var(--glass-fill-strong);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  cursor: pointer;
+  box-shadow: var(--specular), var(--shadow-1);
+  -webkit-appearance: none;
+  appearance: none;
+  transition: transform var(--dur-1) var(--ease), background-color var(--dur-2) var(--ease),
+              box-shadow var(--dur-2) var(--ease), filter var(--dur-2) var(--ease);
+}
+.btn:hover { filter: brightness(1.04); }
+.btn:active { transform: scale(0.96); filter: brightness(1.06); box-shadow: var(--specular); }
+.btn:focus-visible { outline: none; box-shadow: var(--specular), 0 0 0 4px var(--focus-ring); }
+
+.btn-primary {
+  width: 100%;
+  background-color: var(--accent);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0));
+  color: var(--on-accent);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 6px 16px rgba(0, 122, 255, 0.35);
+}
+.btn-primary:active {
+  transform: scale(0.97);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 2px 8px rgba(0, 122, 255, 0.25);
+}
+.btn-primary:focus-visible {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 0 0 4px var(--focus-ring);
+}
+
+/* 16% 語意填充 + 語意文字；四個色調對應四個評分動作 */
+.btn-tint[data-tone="danger"]  { background-color: var(--danger-soft);  color: var(--danger);  border-color: rgba(255, 59, 48, 0.30); }
+.btn-tint[data-tone="warning"] { background-color: var(--warning-soft); color: var(--warning); border-color: rgba(255, 149, 0, 0.30); }
+.btn-tint[data-tone="success"] { background-color: var(--success-soft); color: var(--success); border-color: rgba(52, 199, 89, 0.30); }
+.btn-tint[data-tone="neutral"] { background-color: var(--neutral-soft); color: var(--body);    border-color: var(--hairline); }
+.btn-tint[data-tone="blue"]    { background-color: var(--accent-soft);  color: var(--accent-deep); border-color: rgba(0, 122, 255, 0.30); }
+
+html.dark .btn-tint[data-tone="danger"]  { border-color: rgba(255, 69, 58, 0.32); }
+html.dark .btn-tint[data-tone="warning"] { border-color: rgba(255, 159, 10, 0.32); }
+html.dark .btn-tint[data-tone="success"] { border-color: rgba(48, 209, 88, 0.32); }
+html.dark .btn-tint[data-tone="blue"]    { border-color: rgba(10, 132, 255, 0.32); }
+
+.btn-row { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.btn-row-rate .btn { flex: 1 1 0; min-width: 0; padding: 0 var(--s-2); }
+
+/* --- 圖示按鈕 ------------------------------------------------------------ */
+.icon-button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: var(--r-capsule);
+  background-color: var(--glass-fill-strong);
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: var(--specular), var(--shadow-1);
+  transition: transform var(--dur-1) var(--ease), background-color var(--dur-2) var(--ease),
+              box-shadow var(--dur-2) var(--ease), filter var(--dur-2) var(--ease);
+}
+.icon-button:hover { filter: brightness(1.04); }
+.icon-button:active { transform: scale(0.94); }
+.icon-button:focus-visible { outline: none; box-shadow: var(--specular), 0 0 0 4px var(--focus-ring); }
+.icon-button .icon-sun { display: none; }
+html.dark .icon-button .icon-sun { display: block; }
+html.dark .icon-button .icon-moon { display: none; }
+
+/* --- 輸入框 / 下拉 ------------------------------------------------------- */
+.field {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background-color: var(--field-fill);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 22px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+  -webkit-appearance: none;
+  appearance: none;
+  transition: background-color var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease),
+              box-shadow var(--dur-2) var(--ease);
+}
+.field::placeholder { color: var(--mute); }
+.field:focus {
+  outline: none;
+  background-color: var(--glass-fill-strong);
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06), 0 0 0 4px var(--focus-ring);
+}
+.field-select {
+  padding-right: var(--s-8);
+  background-image: var(--chevron);
+  background-repeat: no-repeat;
+  background-position: right var(--s-3) center;
+  background-size: 16px 16px;
+  cursor: pointer;
+}
+html.dark .field-select option { background: #1c1c1e; color: #f2f2f7; }
+
+/* --- 分類標籤 ------------------------------------------------------------ */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--s-2);
+  border-radius: var(--r-capsule);
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+}
+
+/* --- 文字 ---------------------------------------------------------------- */
+.meta {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mute);
+}
+.task-question {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+.task-answer {
+  margin: 0;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-xs);
+  background: var(--success-soft);
+  color: var(--success);
+  font-size: 15px;
+  line-height: 20px;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.985);
+  filter: blur(3px);
+  transition: opacity var(--dur-2) var(--ease), transform var(--dur-2) var(--ease),
+              filter var(--dur-2) var(--ease);
+}
+.task-answer.is-revealed { opacity: 1; transform: none; filter: none; }
+
+.row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+.empty {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--success);
+  font-size: 15px;
+  line-height: 20px;
+  animation: rise var(--dur-3) var(--ease-out) both;
+}
+.empty .icon path {
+  stroke-dasharray: 26;
+  stroke-dashoffset: 26;
+  animation: draw 520ms var(--ease-out) 100ms both;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.drag-handle { flex: none; display: inline-flex; color: var(--mute); cursor: grab; }
+
+/* --- 招牌組件 2：進度軌道 ------------------------------------------------ */
+.progress {
+  height: 6px;
+  border-radius: var(--r-capsule);
+  background: var(--field-fill);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 0;
+  border-radius: var(--r-capsule);
+  background: var(--success);
+  transition: width var(--dur-4) var(--ease);
+}
+
+/* --- 工具列 -------------------------------------------------------------- */
+.toolbar { display: flex; flex-direction: column; gap: var(--s-2); }
+.toolbar-row { display: flex; gap: var(--s-2); }
+.toolbar-row .field-select { flex: 1 1 0; min-width: 0; }
+
+/* --- 拖拽 ---------------------------------------------------------------- */
+.row-card {
+  cursor: grab;
+  transition: transform var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease),
+              opacity var(--dur-2) var(--ease);
+}
+.row-card.dragging {
+  opacity: 0.9;
+  transform: scale(1.02);
+  box-shadow: var(--specular), var(--shadow-3);
+  cursor: grabbing;
+}
+/* --- 光標透鏡：蓋在整頁之上的反相圓盤（DeepSeek 式 difference 混合）---- */
+.lens-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+}
+@media (hover: none), (pointer: coarse) { .lens-canvas { display: none; } }
+
+/* --- 降級：不支援 backdrop-filter 時用更實的填充 ------------------------ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root { --glass-fill: rgba(255, 255, 255, 0.92); --glass-fill-strong: rgba(255, 255, 255, 0.96); }
+  html.dark { --glass-fill: rgba(38, 40, 48, 0.94); --glass-fill-strong: rgba(48, 50, 58, 0.97); }
+}
+
+/* --- 無障礙：降低透明度 / 降低動效 -------------------------------------- */
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glass-fill: rgba(255, 255, 255, 0.94); --glass-fill-strong: rgba(255, 255, 255, 0.97); --blob-opacity: 0.45; }
+  html.dark { --glass-fill: rgba(28, 28, 30, 0.95); --glass-fill-strong: rgba(38, 40, 48, 0.97); }
+  .glass-card, .task-card, .row-card, .btn, .icon-button {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+  .btn:active, .icon-button:active, .row-card.dragging { transform: none; }
+}
+
+/* --- 響應式 -------------------------------------------------------------- */
+@media (max-width: 420px) {
+  .btn-row-rate { gap: var(--s-1); }
+  .btn-row-rate .btn { font-size: 14px; }
+}
+@media (min-width: 641px) {
+  .shell { padding-left: var(--s-5); padding-right: var(--s-5); }
+}
+</style>
+</head>
+<body>
+
+<div class="wallpaper" aria-hidden="true">
+  <span class="blob-1"></span>
+  <span class="blob-2"></span>
+  <span class="blob-3"></span>
+  <span class="blob-4"></span>
+</div>
+
+<main class="shell">
+  <header class="app-header">
+<h1 class="large-title"><span data-cursor="blend">智能複習助手</span></h1>
+    <button id="toggleDark" class="icon-button" type="button" aria-label="切換外觀">
+      <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"/></svg>
+      <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6"/></svg>
+    </button>
+  </header>
+
+  <!-- 新增卡片 -->
+  <section class="glass-card" id="addCard">
+    <div class="card-stack">
+      <input id="question" class="field" type="text" placeholder="輸入問題（正面）" autocomplete="off"/>
+      <input id="answer" class="field" type="text" placeholder="輸入答案（背面）" autocomplete="off"/>
+      <select id="category" class="field field-select" aria-label="分類">
+        <option value="語文">語文</option>
+        <option value="數學">數學</option>
+        <option value="英語">英語</option>
+        <option value="物理">物理</option>
+        <option value="化學">化學</option>
+        <option value="地理">地理</option>
+      </select>
+      <button id="addBtn" class="btn btn-primary" type="button">添加卡片</button>
+    </div>
+  </section>
+
+  <!-- 今日任務 -->
+  <section class="glass-card" id="tasksContainer">
+    <h2 class="card-title">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.2" y="5" width="17.6" height="15.8" rx="4"/><path d="M3.2 10h17.6M8 3.4v3.2M16 3.4v3.2"/></svg>
+      今日必須複習
+    </h2>
+    <div class="card-stack">
+      <div id="taskCount" class="meta tnum"></div>
+      <div class="progress" role="progressbar" aria-label="今日複習進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="progressBar" class="progress-fill"></div>
+      </div>
+      <div id="taskList" class="card-stack"></div>
+      <div id="progress" class="meta tnum"></div>
+    </div>
+  </section>
+
+  <!-- 卡片管理 -->
+  <section class="glass-card" id="manageContainer">
+    <h2 class="card-title">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2 3.2 7.6 12 12l8.8-4.4L12 3.2Z"/><path d="M3.2 12.4 12 16.8l8.8-4.4"/><path d="M3.2 16.6 12 21l8.8-4.4"/></svg>
+      已添加卡片管理
+    </h2>
+    <div class="toolbar">
+      <input id="searchKeyword" class="field" type="search" placeholder="關鍵字搜索" autocomplete="off"/>
+      <div class="toolbar-row">
+        <select id="filterCategory" class="field field-select" aria-label="篩選分類">
+          <option value="全部">全部分類</option>
+          <option value="語文">語文</option>
+          <option value="數學">數學</option>
+          <option value="英語">英語</option>
+          <option value="物理">物理</option>
+          <option value="化學">化學</option>
+          <option value="地理">地理</option>
+        </select>
+        <select id="sortOrder" class="field field-select" aria-label="排序方式">
+          <option value="added">按添加時間</option>
+          <option value="nextReview">按下次複習時間</option>
+        </select>
+      </div>
+    </div>
+    <div id="manageList" class="card-stack"></div>
+    <div id="categoryStats" class="meta tnum"></div>
+  </section>
+</main>
+
+<script>
+const categories = ["語文", "數學", "英語", "物理", "化學", "地理"];
+let items = JSON.parse(localStorage.getItem("review_items") || "[]");
+items.forEach(i => i.nextReview = new Date(i.nextReview));
+
+const questionInput = document.getElementById("question");
+const answerInput = document.getElementById("answer");
+const categorySelect = document.getElementById("category");
+const addBtn = document.getElementById("addBtn");
+const taskCountDiv = document.getElementById("taskCount");
+const taskListDiv = document.getElementById("taskList");
+const progressDiv = document.getElementById("progress");
+const progressBar = document.getElementById("progressBar");
+const progressEl = document.querySelector(".progress");
+const manageListDiv = document.getElementById("manageList");
+const filterCategory = document.getElementById("filterCategory");
+const searchKeyword = document.getElementById("searchKeyword");
+const sortOrder = document.getElementById("sortOrder");
+const categoryStatsDiv = document.getElementById("categoryStats");
+const toggleDark = document.getElementById("toggleDark");
+
+function saveItems() { localStorage.setItem("review_items", JSON.stringify(items)); }
+function esc(v) {
+  return String(v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function addItem() {
+  const q = questionInput.value.trim();
+  const a = answerInput.value.trim();
+  const c = categorySelect.value;
+  if (!q) return;
+  items.push({ id: Date.now(), question: q, answer: a, category: c, repetition: 0, interval: 0, easeFactor: 2.5, nextReview: new Date() });
+  questionInput.value = "";
+  answerInput.value = "";
+  renderAll();
+  saveItems();
+}
+
+function reviewItem(id, quality) {
+  items = items.map(i => {
+    if (i.id !== id) return i;
+    let { repetition, interval, easeFactor } = i;
+    if (quality < 3) { repetition = 0; interval = 1; }
+    else {
+      repetition += 1;
+      if (repetition === 1) interval = 1;
+      else if (repetition === 2) interval = 6;
+      else interval = Math.round(interval * easeFactor);
+    }
+    easeFactor += 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02);
+    if (easeFactor < 1.3) easeFactor = 1.3;
+    const d = new Date();
+    d.setDate(d.getDate() + interval);
+    return { ...i, repetition, interval, easeFactor, nextReview: d };
+  });
+  renderAll();
+  saveItems();
+}
+
+function renderTasks() {
+  const today = new Date();
+  const todayTasks = items.filter(i => i.nextReview <= today);
+  const completed = items.filter(i => i.nextReview > today).length;
+  const total = todayTasks.length + completed;
+  const pct = total ? Math.round((completed / total) * 100) : 0;
+
+  taskCountDiv.textContent = `共 ${todayTasks.length} 條任務`;
+  progressDiv.textContent = `今日已完成 ${completed} / ${total}`;
+  progressBar.style.width = pct + "%";
+  progressEl.setAttribute("aria-valuenow", String(pct));
+
+  taskListDiv.innerHTML = "";
+  if (todayTasks.length === 0) {
+    taskListDiv.innerHTML = '<p class="empty"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6.5 9.6 17 4 11.4"/></svg>今天已全部完成</p>';
+  } else {
+    todayTasks.forEach((i, index) => {
+      const card = document.createElement("article");
+      card.className = "task-card";
+      card.id = `task-card-${i.id}`;
+      card.innerHTML =
+        `<div class="row-head">
+           <span class="chip">${esc(i.category)}</span>
+           <span class="meta">間隔 ${i.interval} 天 · 難度 ${i.easeFactor.toFixed(2)}</span>
+         </div>
+         <p class="task-question">${esc(i.question)}</p>
+         <p id="answer-${i.id}" class="task-answer">${esc(i.answer)}</p>
+         <div class="btn-row">
+           <button id="show-${i.id}" type="button" class="btn btn-quiet">顯示答案</button>
+         </div>
+         <div class="btn-row btn-row-rate">
+           <button id="bad-${i.id}" type="button" class="btn btn-tint" data-tone="danger">不會</button>
+           <button id="hard-${i.id}" type="button" class="btn btn-tint" data-tone="warning">困難</button>
+           <button id="medium-${i.id}" type="button" class="btn btn-tint" data-tone="neutral">一般</button>
+           <button id="easy-${i.id}" type="button" class="btn btn-tint" data-tone="success">簡單</button>
+         </div>`;
+      taskListDiv.appendChild(card);
+
+      if (!seenTasks.has(i.id)) { seenTasks.add(i.id); animateIn(card, Math.min(index, 6) * 45); }
+
+      const showBtn = document.getElementById(`show-${i.id}`);
+      const answerEl = document.getElementById(`answer-${i.id}`);
+      showBtn.onclick = () => {
+        const revealed = answerEl.classList.toggle("is-revealed");
+        showBtn.textContent = revealed ? "隱藏答案" : "顯示答案";
+      };
+      document.getElementById(`bad-${i.id}`).onclick = () => rateCard(i.id, 1, "danger");
+      document.getElementById(`hard-${i.id}`).onclick = () => rateCard(i.id, 3, "warning");
+      document.getElementById(`medium-${i.id}`).onclick = () => rateCard(i.id, 4, "neutral");
+      document.getElementById(`easy-${i.id}`).onclick = () => rateCard(i.id, 5, "success");
+    });
+  }
+}
+
+let dragSrcEl = null;
+function handleDragStart(e) { dragSrcEl = e.currentTarget; e.dataTransfer.effectAllowed = "move"; e.currentTarget.classList.add("dragging"); }
+function handleDragEnd(e) { e.currentTarget.classList.remove("dragging"); saveItems(); }
+function handleDragOver(e) { e.preventDefault(); return false; }
+function handleDrop(e) {
+  e.preventDefault();
+  if (dragSrcEl !== e.currentTarget) {
+    const fromId = parseInt(dragSrcEl.dataset.id), toId = parseInt(e.currentTarget.dataset.id);
+    const fromIndex = items.findIndex(i => i.id === fromId);
+    const toIndex = items.findIndex(i => i.id === toId);
+    const [moved] = items.splice(fromIndex, 1);
+    items.splice(toIndex, 0, moved);
+    renderManageList();
+  }
+  return false;
+}
+
+function renderManageList() {
+  const filter = filterCategory.value;
+  const keyword = searchKeyword.value.trim().toLowerCase();
+  const order = sortOrder.value;
+  manageListDiv.innerHTML = "";
+
+  let filtered = items.filter(i => {
+    const mc = filter === "全部" ? true : i.category === filter;
+    const mk = keyword === "" ? true : i.question.toLowerCase().includes(keyword) || i.answer.toLowerCase().includes(keyword);
+    return mc && mk;
+  });
+  if (order === "added") filtered.sort((a, b) => b.id - a.id);
+  else filtered.sort((a, b) => a.nextReview - b.nextReview);
+
+  filtered.forEach((i, index) => {
+    const div = document.createElement("article");
+    div.className = "row-card";
+    div.dataset.id = i.id;
+    div.draggable = true;
+    div.innerHTML =
+      `<div class="row-head">
+         <span class="chip">${esc(i.category)}</span>
+         <span class="drag-handle" aria-hidden="true">
+           <svg class="icon" viewBox="0 0 24 24"><path d="M8.5 7h7M8.5 12h7M8.5 17h7"/></svg>
+         </span>
+       </div>
+       <input id="editQ-${i.id}" class="field" type="text" value="${esc(i.question)}" aria-label="問題"/>
+       <input id="editA-${i.id}" class="field" type="text" value="${esc(i.answer)}" aria-label="答案"/>
+       <select id="editC-${i.id}" class="field field-select" aria-label="分類">
+         ${categories.map(c => `<option value="${c}" ${c === i.category ? "selected" : ""}>${c}</option>`).join("")}
+       </select>
+       <div class="btn-row">
+         <button id="save-${i.id}" type="button" class="btn btn-tint" data-tone="blue">保存修改</button>
+         <button id="del-${i.id}" type="button" class="btn btn-tint" data-tone="danger">刪除</button>
+       </div>`;
+    manageListDiv.appendChild(div);
+
+    if (!seenRows.has(i.id)) { seenRows.add(i.id); animateIn(div, Math.min(index, 8) * 30, 240); }
+
+    div.addEventListener("dragstart", handleDragStart);
+    div.addEventListener("dragend", handleDragEnd);
+    div.addEventListener("dragover", handleDragOver);
+    div.addEventListener("drop", handleDrop);
+
+    document.getElementById(`save-${i.id}`).onclick = () => {
+      i.question = document.getElementById(`editQ-${i.id}`).value;
+      i.answer = document.getElementById(`editA-${i.id}`).value;
+      i.category = document.getElementById(`editC-${i.id}`).value;
+      renderAll();
+      saveItems();
+    };
+    document.getElementById(`del-${i.id}`).onclick = () => {
+      const commit = () => { items = items.filter(x => x.id !== i.id); renderAll(); saveItems(); };
+      if (!motionOK()) { commit(); return; }
+      animateOut(div).then(commit);
+    };
+  });
+
+  const stats = categories.map(c => `${c}: ${items.filter(i => i.category === c).length}`).join(" · ");
+  categoryStatsDiv.textContent = `分類統計：${stats}`;
+}
+
+/* --------------------------------------------------------------------------
+   動效層
+   一次只做一件事：卡片進場、評分離場、光斑跟隨、光標透鏡。
+   全部在 prefers-reduced-motion 下自動停用；缺 Web Animations API 時退化為瞬時切換。
+   -------------------------------------------------------------------------- */
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+const motionOK = () => !reduceMotion.matches;
+const seenTasks = new Set();
+const seenRows = new Set();
+
+/* 動效參數一律從 CSS token 讀取：改 token 就同時改到 JS 動畫，不會兩邊飄 */
+let motionTokens = null;
+function durations() {
+  if (!motionTokens) {
+    const cs = getComputedStyle(document.documentElement);
+    const v = (name, fallback) => (cs.getPropertyValue(name) || "").trim() || fallback;
+    motionTokens = {
+      fast: v("--dur-1", "120ms"),
+      base: v("--dur-2", "220ms"),
+      slow: v("--dur-3", "320ms"),
+      exit: v("--dur-4", "400ms"),
+      ease: v("--ease", "cubic-bezier(0.32, 0.72, 0, 1)"),
+      easeOut: v("--ease-out", "cubic-bezier(0.22, 1, 0.36, 1)"),
+    };
+  }
+  return motionTokens;
+}
+
+function animateIn(el, delay, duration) {
+  if (!motionOK() || !el || !el.animate) return;
+  const d = durations();
+  el.animate(
+    [{ opacity: 0, transform: "translateY(-6px) scale(0.985)" }, { opacity: 1, transform: "none" }],
+    { duration: duration || d.slow, delay: delay || 0, easing: d.easeOut, fill: "backwards" }
+  );
+}
+
+/* 離場：先閃一下語意色，再縮小並把高度塌掉，避免列表「啪」地跳一格 */
+function animateOut(el) {
+  if (!motionOK() || !el || !el.animate) return Promise.resolve();
+  const d = durations();
+  const height = el.offsetHeight;
+  const marginTop = getComputedStyle(el).marginTop;
+  el.style.overflow = "hidden";
+  const anim = el.animate([
+    { height: height + "px", marginTop: marginTop, opacity: 1, transform: "none", offset: 0 },
+    { height: height + "px", marginTop: marginTop, opacity: 1, transform: "scale(1.012)", offset: 0.32 },
+    { height: "0px", marginTop: "0px", opacity: 0, transform: "scale(0.94)", offset: 1 },
+  ], { duration: d.exit, easing: d.ease });
+  return anim.finished ? anim.finished.catch(() => {}) : Promise.resolve();
+}
+
+function rateCard(id, quality, tone) {
+  const card = document.getElementById(`task-card-${id}`);
+  if (!card || !motionOK()) { reviewItem(id, quality); return; }
+  card.classList.add(`flash-${tone}`);
+  animateOut(card).then(() => reviewItem(id, quality));
+}
+
+/* 光斑：玻璃對移動中的光源有反應 */
+(function mountSpecular() {
+  if (!finePointer.matches || reduceMotion.matches) return;
+  let hovered = null, pending = null, rafId = 0;
+
+  const apply = () => {
+    rafId = 0;
+    if (!pending) return;
+    const rect = pending.el.getBoundingClientRect();
+    pending.el.style.setProperty("--mx", (pending.x - rect.left) + "px");
+    pending.el.style.setProperty("--my", (pending.y - rect.top) + "px");
+    pending.el.style.setProperty("--hi", "1");
+  };
+
+  document.addEventListener("pointermove", (e) => {
+    const el = e.target instanceof Element ? e.target.closest(".glass-card, .task-card") : null;
+    if (el !== hovered) {
+      if (hovered) hovered.style.setProperty("--hi", "0");
+      hovered = el;
+    }
+    if (!el) return;
+    pending = { el: el, x: e.clientX, y: e.clientY };
+    if (!rafId) rafId = requestAnimationFrame(apply);
+  }, { passive: true });
+})();
+
+/* 光標透鏡：蓋滿視口的 canvas，用 difference 混合在白盤處把底下整片反相。
+   只在 [data-cursor="blend"] 上出現，離開、滾動、切到後台都淡出。 */
+(function mountLensCursor() {
+  if (!finePointer.matches || reduceMotion.matches) return;
+
+  const canvas = document.createElement("canvas");
+  canvas.className = "lens-canvas";
+  canvas.setAttribute("aria-hidden", "true");
+
+  let ctx = null;
+  try { ctx = canvas.getContext("2d"); } catch (err) { ctx = null; }
+  if (!ctx) return;                       // 環境不支援 2D canvas 就整段跳過
+  document.body.appendChild(canvas);
+
+  /* 半徑對標題行高取值：標題 34px/41px，圓盤直徑 44px 略大於行高，
+     溢出上下各約 1.5px——既維持完整的圓，又不會在壁紙上開一個大洞。
+     （DeepSeek 標語行高約 68px、圓盤 64px，比例與此相同。） */
+  const RADIUS = 22;
+  let tx = 0, ty = 0, cx = 0, cy = 0;
+  let alpha = 0, targetAlpha = 0, scale = 0.62, targetScale = 0.62;
+  let rafId = 0;
+  let lastX = 0, lastY = 0, lastR = 0;
+
+  function clearPrev() {
+    if (!lastR) return;
+    ctx.clearRect(lastX - lastR - 2, lastY - lastR - 2, (lastR + 2) * 2, (lastR + 2) * 2);
+  }
+
+  function frame() {
+    rafId = 0;
+    const dx = tx - cx, dy = ty - cy;
+    const ease = Math.sqrt(dx * dx + dy * dy) < 50 ? 0.7 : 0.42;   // 近距離咬得更緊
+    cx += dx * ease;
+    cy += dy * ease;
+    alpha += (targetAlpha - alpha) * 0.24;
+    scale += (targetScale - scale) * 0.24;
+
+    clearPrev();
+    const r = RADIUS * scale;
+    if (alpha > 0.002) {
+      ctx.save();
+      /* 不裁切：圓盤必須是完整的圓。裁到文字方框會被上下切成一條硬邊橫條。 */
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = "#fff";
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      lastX = cx; lastY = cy; lastR = r;
+    } else {
+      lastR = 0;
+    }
+
+    const settled = Math.abs(dx) + Math.abs(dy) <= 0.1 &&
+      Math.abs(targetAlpha - alpha) <= 0.002 && Math.abs(targetScale - scale) <= 0.002;
+    if (settled) { cx = tx; cy = ty; alpha = targetAlpha; scale = targetScale; }
+    else schedule();
+  }
+
+  function schedule() { if (!rafId && !document.hidden) rafId = requestAnimationFrame(frame); }
+
+  function onPointer(e) {
+    const el = e.target instanceof Element ? e.target.closest('[data-cursor="blend"]') : null;
+    if (!el) {
+      targetAlpha = 0;
+      if (alpha > 0.002 || lastR) schedule();
+      return;
+    }
+    tx = e.clientX; ty = e.clientY;
+    if (alpha <= 0.002 && !lastR) { cx = tx; cy = ty; }   // 首次出現直接就位，不從上個位置飛進來
+    targetAlpha = 1; targetScale = 1;
+    schedule();
+  }
+
+  function fadeOut() {
+    targetAlpha = 0;
+    if (alpha > 0.002 || lastR) schedule();
+  }
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = window.innerWidth, h = window.innerHeight;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    alpha = 0; targetAlpha = 0; lastR = 0;
+  }
+
+  document.addEventListener("pointermove", onPointer, { passive: true });
+  document.addEventListener("pointerover", onPointer, { passive: true });
+  document.addEventListener("pointerleave", fadeOut, { passive: true });
+  window.addEventListener("scroll", fadeOut, { passive: true });
+  window.addEventListener("resize", resize);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) { if (rafId) cancelAnimationFrame(rafId); rafId = 0; }
+    else if (targetAlpha > 0 || alpha > 0.002) schedule();
+  });
+  resize();
+})();
+
+function renderAll() { renderTasks(); renderManageList(); }
+
+/* 外觀：預設跟隨系統，使用者手動切換後記住選擇 */
+const savedTheme = localStorage.getItem("review_theme");
+const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+if (savedTheme === "dark" || (savedTheme === null && prefersDark)) {
+  document.documentElement.classList.add("dark");
+}
+
+function updateThemeColor() {
+  const dark = document.documentElement.classList.contains("dark");
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", dark ? "#05070d" : "#eef3fb");
+}
+
+addBtn.onclick = addItem;
+filterCategory.onchange = renderManageList;
+searchKeyword.oninput = renderManageList;
+sortOrder.onchange = renderManageList;
+toggleDark.onclick = () => {
+  const isDark = document.documentElement.classList.toggle("dark");
+  localStorage.setItem("review_theme", isDark ? "dark" : "light");
+  updateThemeColor();
+};
+
+renderAll();
+updateThemeColor();
+</script>
+</body>
+</html>

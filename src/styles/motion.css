@@ -1,0 +1,24 @@
+/* Motion
+   動效與光標透鏡。全部以 token 驅動；prefers-reduced-motion 下整層關閉。 */
+
+/* --- 光標透鏡：蓋在整頁之上的反相圓盤（DeepSeek 式 difference 混合）---- */
+.lens-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+}
+@media (hover: none), (pointer: coarse) { .lens-canvas { display: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+  .btn:active, .icon-button:active, .row-card.dragging { transform: none; }
+  /* 載入指示器是狀態而非裝飾，保留旋轉（放慢），否則使用者無法分辨「在跑」與「卡住」 */
+  .spinner { animation-duration: 1400ms !important; }
+}

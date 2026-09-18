@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能複習助手 - iOS 16/26 毛玻璃 + 手勢</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+  .ios-card {
+    border-radius: 28px;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+    touch-action: pan-y;
+    position: relative;
+  }
+  .ios-card.dark { background: rgba(30,30,30,0.6); box-shadow: 0 8px 20px rgba(0,0,0,0.4); color: #eee; }
+  
+  .ios-card.dragging { opacity:0.7; transform:scale(1.03); cursor:grabbing; }
+
+  .ios-btn { border-radius:20px; padding:8px 16px; font-weight:600; transition: transform 0.2s ease; }
+  .ios-btn:hover { transform: scale(1.05); }
+
+  .ios-input, .ios-select {
+    border-radius:20px; padding:10px 14px;
+    border:1px solid rgba(0,0,0,0.15); outline:none; transition: all 0.2s ease; width:100%;
+  }
+  .ios-input:focus, .ios-select:focus { border-color:#0a84ff; box-shadow:0 0 0 2px rgba(10,132,255,0.3); }
+
+  .fade { transition: opacity 0.3s ease; }
+  .removing { opacity:0; transform:scale(0.95); transition: all 0.3s ease; }
+
+  .swipe-actions {
+    position:absolute; top:0; bottom:0; right:0; left:0; border-radius:28px;
+    display:flex; justify-content:space-between; align-items:center; padding:0 12px; pointer-events:none;
+  }
+  .swipe-btn {
+    pointer-events:auto; padding:6px 12px; border-radius:16px; font-weight:600; color:white;
+  }
+  .swipe-left { background:#ff3b30; }
+  .swipe-right { background:#34c759; }
+</style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+<div class="max-w-xl mx-auto p-4 space-y-4">
+  <div class="flex justify-between items-center mb-2">
+    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">📖 智能複習助手</h1>
+    <button id="toggleDark" class="ios-btn bg-gray-600 text-white">切換夜間模式</button>
+  </div>
+
+  <!-- 添加卡片 -->
+  <div class="ios-card" id="addCard">
+    <input id="question" class="ios-input mb-2" type="text" placeholder="輸入問題（正面）"/>
+    <input id="answer" class="ios-input mb-2" type="text" placeholder="輸入答案（背面）"/>
+    <select id="category" class="ios-select mb-2">
+      <option value="語文">語文</option>
+      <option value="數學">數學</option>
+      <option value="英語">英語</option>
+      <option value="物理">物理</option>
+      <option value="化學">化學</option>
+      <option value="地理">地理</option>
+    </select>
+    <button id="addBtn" class="ios-btn bg-green-500 text-white w-full">添加卡片</button>
+  </div>
+
+  <!-- 今日任務 -->
+  <div class="ios-card" id="tasksContainer">
+    <h2 class="text-xl font-semibold mb-1 text-gray-700 dark:text-gray-200">📅 今日必須複習</h2>
+    <div id="taskCount" class="text-sm text-gray-500 dark:text-gray-300 mb-1"></div>
+    <div id="taskList" class="space-y-2"></div>
+    <div id="progress" class="text-sm text-gray-500 dark:text-gray-300 mt-1"></div>
+  </div>
+
+  <!-- 卡片管理 -->
+  <div class="ios-card" id="manageContainer">
+    <h2 class="text-xl font-semibold mb-2 text-gray-700 dark:text-gray-200">🗂 已添加卡片管理</h2>
+    <div class="flex flex-wrap gap-2 mb-2">
+      <label>分類:</label>
+      <select id="filterCategory" class="ios-select w-auto">
+        <option value="全部">全部</option>
+        <option value="語文">語文</option>
+        <option value="數學">數學</option>
+        <option value="英語">英語</option>
+        <option value="物理">物理</option>
+        <option value="化學">化學</option>
+        <option value="地理">地理</option>
+      </select>
+      <input id="searchKeyword" class="ios-input flex-1" type="text" placeholder="關鍵字搜索"/>
+      <select id="sortOrder" class="ios-select w-auto">
+        <option value="added">按添加時間</option>
+        <option value="nextReview">按下次複習時間</option>
+      </select>
+    </div>
+    <div id="manageList" class="space-y-2"></div>
+    <div id="categoryStats" class="text-sm text-gray-500 dark:text-gray-300 mt-2"></div>
+  </div>
+</div>
+
+<script>
+// 省略代碼：初始化、添加、複習、渲染、拖拽、夜間模式
+// 新增滑動手勢
+function addSwipeListeners(card, itemId) {
+  let startX=0, currentX=0, swiping=false;
+  card.addEventListener('touchstart', e=>{
+    startX=e.touches[0].clientX; swiping=true; card.style.transition='none';
+  });
+  card.addEventListener('touchmove', e=>{
+    if(!swiping) return;
+    currentX=e.touches[0].clientX;
+    const dx=currentX-startX;
+    card.style.transform=`translateX(${dx}px)`;
+  });
+  card.addEventListener('touchend', e=>{
+    swiping=false;
+    const dx=currentX-startX;
+    if(dx<-80){ // 左滑刪除
+      card.style.transform='translateX(-100%)';
+      setTimeout(()=>{items=items.filter(i=>i.id!==itemId);renderAll();localStorage.setItem("review_items",JSON.stringify(items));},300);
+    } else if(dx>80){ // 右滑標記已複習
+      reviewItem(itemId,5);
+      card.style.transform='translateX(0)';
+    } else {
+      card.style.transform='translateX(0)';
+    }
+    card.style.transition='transform 0.3s ease';
+  });
+}
+
+// 後續 renderManageList 中，卡片添加：
+/*
+filtered.forEach(i=>{
+  const div=document.createElement("div");
+  div.className="ios-card ...";
+  ...
+  addSwipeListeners(div,i.id);
+});
+*/
+</script>
+</body>
+</html>

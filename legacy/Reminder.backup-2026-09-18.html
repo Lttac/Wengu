@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能複習助手 - iOS 16/26 風格</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* iOS 16/26 字體 */
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  
+  /* 卡片 */
+  .ios-card {
+    border-radius: 28px;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+  }
+  .ios-card.dark { background: rgba(30,30,30,0.7); box-shadow: 0 8px 20px rgba(0,0,0,0.4); color: #eee; }
+
+  /* 按鈕 */
+  .ios-btn {
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+  }
+  .ios-btn:hover { transform: scale(1.05); }
+
+  /* 輸入框 & select */
+  .ios-input, .ios-select {
+    border-radius: 20px;
+    padding: 10px 14px;
+    border: 1px solid rgba(0,0,0,0.15);
+    outline: none;
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+  .ios-input:focus, .ios-select:focus { border-color: #0a84ff; box-shadow: 0 0 0 2px rgba(10,132,255,0.3); }
+
+  /* 平滑動畫淡入淡出 */
+  .fade { transition: opacity 0.3s ease; }
+  .removing { opacity: 0; transform: scale(0.95); transition: all 0.3s ease; }
+
+  /* 拖拽樣式 */
+  .dragging { opacity: 0.7; transform: scale(1.03); cursor: grabbing; }
+</style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+<div class="max-w-xl mx-auto p-4 space-y-4">
+  <div class="flex justify-between items-center mb-2">
+    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">📖 智能複習助手</h1>
+    <button id="toggleDark" class="ios-btn bg-gray-600 text-white">切換夜間模式</button>
+  </div>
+
+  <!-- 添加卡片 -->
+  <div class="ios-card" id="addCard">
+    <input id="question" class="ios-input mb-2" type="text" placeholder="輸入問題（正面）"/>
+    <input id="answer" class="ios-input mb-2" type="text" placeholder="輸入答案（背面）"/>
+    <select id="category" class="ios-select mb-2">
+      <option value="語文">語文</option>
+      <option value="數學">數學</option>
+      <option value="英語">英語</option>
+      <option value="物理">物理</option>
+      <option value="化學">化學</option>
+      <option value="地理">地理</option>
+    </select>
+    <button id="addBtn" class="ios-btn bg-green-500 text-white w-full">添加卡片</button>
+  </div>
+
+  <!-- 今日任務 -->
+  <div class="ios-card" id="tasksContainer">
+    <h2 class="text-xl font-semibold mb-1 text-gray-700 dark:text-gray-200">📅 今日必須複習</h2>
+    <div id="taskCount" class="text-sm text-gray-500 dark:text-gray-300 mb-1"></div>
+    <div id="taskList" class="space-y-2"></div>
+    <div id="progress" class="text-sm text-gray-500 dark:text-gray-300 mt-1"></div>
+  </div>
+
+  <!-- 卡片管理 -->
+  <div class="ios-card" id="manageContainer">
+    <h2 class="text-xl font-semibold mb-2 text-gray-700 dark:text-gray-200">🗂 已添加卡片管理</h2>
+    <div class="flex flex-wrap gap-2 mb-2">
+      <label>分類:</label>
+      <select id="filterCategory" class="ios-select w-auto">
+        <option value="全部">全部</option>
+        <option value="語文">語文</option>
+        <option value="數學">數學</option>
+        <option value="英語">英語</option>
+        <option value="物理">物理</option>
+        <option value="化學">化學</option>
+        <option value="地理">地理</option>
+      </select>
+      <input id="searchKeyword" class="ios-input flex-1" type="text" placeholder="關鍵字搜索"/>
+      <select id="sortOrder" class="ios-select w-auto">
+        <option value="added">按添加時間</option>
+        <option value="nextReview">按下次複習時間</option>
+      </select>
+    </div>
+    <div id="manageList" class="space-y-2"></div>
+    <div id="categoryStats" class="text-sm text-gray-500 dark:text-gray-300 mt-2"></div>
+  </div>
+</div>
+
+<script>
+const categories=["語文","數學","英語","物理","化學","地理"];
+let items=JSON.parse(localStorage.getItem("review_items")||"[]");
+items.forEach(i=>i.nextReview=new Date(i.nextReview));
+
+const questionInput=document.getElementById("question");
+const answerInput=document.getElementById("answer");
+const categorySelect=document.getElementById("category");
+const addBtn=document.getElementById("addBtn");
+const taskCountDiv=document.getElementById("taskCount");
+const taskListDiv=document.getElementById("taskList");
+const progressDiv=document.getElementById("progress");
+const manageListDiv=document.getElementById("manageList");
+const filterCategory=document.getElementById("filterCategory");
+const searchKeyword=document.getElementById("searchKeyword");
+const sortOrder=document.getElementById("sortOrder");
+const categoryStatsDiv=document.getElementById("categoryStats");
+const toggleDark=document.getElementById("toggleDark");
+
+function saveItems(){localStorage.setItem("review_items",JSON.stringify(items));}
+function addItem(){const q=questionInput.value.trim();const a=answerInput.value.trim();const c=categorySelect.value;if(!q)return;items.push({id:Date.now(),question:q,answer:a,category:c,repetition:0,interval:0,easeFactor:2.5,nextReview:new Date()});questionInput.value="";answerInput.value="";renderAll();saveItems();}
+function reviewItem(id,quality){items=items.map(i=>{if(i.id!==id)return i;let{repetition,interval,easeFactor}=i;if(quality<3){repetition=0;interval=1;}else{repetition+=1;if(repetition===1)interval=1;else if(repetition===2)interval=6;else interval=Math.round(interval*easeFactor);}easeFactor+=0.1-(5-quality)*(0.08+(5-quality)*0.02);if(easeFactor<1.3)easeFactor=1.3;const d=new Date();d.setDate(d.getDate()+interval);return{...i,repetition,interval,easeFactor,nextReview:d};});renderAll();saveItems();}
+function renderTasks(){const today=new Date();const todayTasks=items.filter(i=>i.nextReview<=today);taskCountDiv.textContent=`共 ${todayTasks.length} 條任務`;taskListDiv.innerHTML="";if(todayTasks.length===0){taskListDiv.innerHTML='<div class="text-green-600">今天已全部完成 🎉</div>';}else{todayTasks.forEach(i=>{const div=document.createElement("div");div.className="ios-card fade bg-white/80 dark:bg-gray-800/60";div.innerHTML=`<div class="text-xs text-gray-500 dark:text-gray-300">[${i.category}]</div><div class="font-semibold">${i.question}</div><div id="answer-${i.id}" style="opacity:0;transition:opacity 0.3s;" class="text-green-600">${i.answer}</div><div class="flex gap-2 mt-1 flex-wrap"><button id="show-${i.id}" class="ios-btn bg-gray-300">顯示答案</button><button id="bad-${i.id}" class="ios-btn bg-red-500">不會</button><button id="hard-${i.id}" class="ios-btn bg-yellow-400">困難</button><button id="medium-${i.id}" class="ios-btn bg-gray-400">一般</button><button id="easy-${i.id}" class="ios-btn bg-green-400">簡單</button></div><div class="text-xs text-gray-400 mt-1 dark:text-gray-300">間隔: ${i.interval} 天 | 難度係數: ${i.easeFactor.toFixed(2)}</div>`;taskListDiv.appendChild(div);document.getElementById(`show-${i.id}`).onclick=()=>{const ans=document.getElementById(`answer-${i.id}`);ans.style.opacity=(ans.style.opacity==0?1:0);};document.getElementById(`bad-${i.id}`).onclick=()=>reviewItem(i.id,1);document.getElementById(`hard-${i.id}`).onclick=()=>reviewItem(i.id,3);document.getElementById(`medium-${i.id}`).onclick=()=>reviewItem(i.id,4);document.getElementById(`easy-${i.id}`).onclick=()=>reviewItem(i.id,5);});}const completed=items.filter(i=>i.nextReview>today).length;progressDiv.textContent=`今日已完成: ${completed} / ${todayTasks.length+completed}`;}
+
+let dragSrcEl=null;
+function handleDragStart(e){dragSrcEl=e.currentTarget;e.dataTransfer.effectAllowed="move";e.currentTarget.classList.add("dragging");}
+function handleDragEnd(e){e.currentTarget.classList.remove("dragging");saveItems();}
+function handleDragOver(e){e.preventDefault();return false;}
+function handleDrop(e){e.preventDefault();if(dragSrcEl!=e.currentTarget){const fromId=parseInt(dragSrcEl.dataset.id),toId=parseInt(e.currentTarget.dataset.id);const fromIndex=items.findIndex(i=>i.id===fromId);const toIndex=items.findIndex(i=>i.id===toId);const [moved]=items.splice(fromIndex,1);items.splice(toIndex,0,moved);renderManageList();}return false;}
+
+function renderManageList(){
+  const filter=filterCategory.value; const keyword=searchKeyword.value.trim().toLowerCase(); const order=sortOrder.value;
+  manageListDiv.innerHTML="";
+  let filtered=items.filter(i=>{const mc=filter==='全部'?true:i.category===filter;const mk=keyword===''?true:i.question.toLowerCase().includes(keyword)||i.answer.toLowerCase().includes(keyword);return mc&&mk;});
+  if(order==='added') filtered.sort((a,b)=>b.id-a.id); else filtered.sort((a,b)=>a.nextReview-b.nextReview);
+
+  filtered.forEach(i=>{
+    const div=document.createElement("div");
+    div.className="ios-card bg-white/80 dark:bg-gray-800/60 fade";
+    div.dataset.id=i.id; div.draggable=true;
+    div.innerHTML=`<div class="text-xs text-gray-500 dark:text-gray-300">[${i.category}]</div><input id="editQ-${i.id}" class="ios-input" value="${i.question}"/><input id="editA-${i.id}" class="ios-input mt-1" value="${i.answer}"/><select id="editC-${i.id}" class="ios-select mt-1">${categories.map(c=>`<option value="${c}" ${c===i.category?'selected':''}>${c}</option>`).join("")}</select><div class="flex gap-2 mt-1 flex-wrap"><button id="save-${i.id}" class="ios-btn bg-blue-500">保存修改</button><button id="del-${i.id}" class="ios-btn bg-red-600">刪除</button></div>`;
+    manageListDiv.appendChild(div);
+
+    div.addEventListener("dragstart",handleDragStart);
+    div.addEventListener("dragend",handleDragEnd);
+    div.addEventListener("dragover",handleDragOver);
+    div.addEventListener("drop",handleDrop);
+
+    document.getElementById(`save-${i.id}`).onclick=()=>{i.question=document.getElementById(`editQ-${i.id}`).value;i.answer=document.getElementById(`editA-${i.id}`).value;i.category=document.getElementById(`editC-${i.id}`).value;renderAll();saveItems();};
+    document.getElementById(`del-${i.id}`).onclick=()=>{div.classList.add("removing");setTimeout(()=>{items=items.filter(x=>x.id!==i.id);renderAll();saveItems();},300);};
+  });
+
+  const stats=categories.map(c=>` ${c}: ${items.filter(i=>i.category===c).length}`).join(" | ");
+  categoryStatsDiv.textContent=`分類統計:${stats}`;
+}
+
+function renderAll(){renderTasks();renderManageList();}
+addBtn.onclick=addItem;
+filterCategory.onchange=renderManageList;
+searchKeyword.oninput=renderManageList;
+sortOrder.onchange=renderManageList;
+toggleDark.onclick=()=>document.documentElement.classList.toggle("dark");
+renderAll();
+</script>
+</body>
+</html>
