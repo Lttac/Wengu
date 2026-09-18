@@ -8,6 +8,7 @@
     "test": "node tests/smoke.mjs",
     "serve": "node scripts/serve.mjs",
     "shots": "node scripts/shoot.mjs",
+    "inspect": "node scripts/inspect.mjs",
     "lint:design": "node scripts/check-design.mjs",
     "lint:tokens": "node scripts/check-tokens.mjs",
     "lint:contrast": "node scripts/check-contrast.mjs",

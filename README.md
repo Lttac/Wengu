@@ -196,10 +196,15 @@ npx serve .                   # 或任何靜態伺服器
 │       ├── settings.js         設定面板
 │       ├── ai.js               AI 生成與解釋
 │       └── toast.js            吐司（含撤銷）
-├── tests/smoke.mjs             冒煙測試（194 項）
+├── tests/smoke.mjs             冒煙測試（198 項）
+├── docs/screenshots/           README 用的產品截圖（由 npm run shots 產生）
 ├── scripts/
 │   ├── serve.mjs               本機靜態伺服器
 │   ├── gen-spring.mjs          彈簧曲線產生器 → src/styles/spring.css
+│   ├── shoot.mjs               產生 README 截圖（走 Chrome DevTools Protocol）
+│   ├── inspect.mjs             視覺巡檢：13 個狀態各拍一張
+│   ├── lib/browser.mjs         CDP 驅動（Node 內建 WebSocket，零依賴）
+│   ├── lib/demo.mjs            示範資料（截圖與巡檢共用）
 │   ├── check-design.mjs        DESIGN.md 結構檢查
 │   ├── check-tokens.mjs        自訂屬性雙向檢查（CSS 定義 ↔ JS 寫入 ↔ 引用）
 │   └── check-contrast.mjs      WCAG 對比度（依實際堆疊順序合成）
@@ -210,8 +215,10 @@ npx serve .                   # 或任何靜態伺服器
 
 ```bash
 npm install          # 只裝測試用的 jsdom，執行時不需要任何依賴
-npm test             # 194 項冒煙測試：純邏輯 + 把整個 app 掛進 jsdom 跑一遍流程
+npm test             # 198 項冒煙測試：純邏輯 + 把整個 app 掛進 jsdom 跑一遍流程
 npm run serve        # 本機預覽
+npm run shots        # 重新產生 README 的產品截圖（需要 serve 開著）
+npm run inspect      # 視覺巡檢：13 個狀態各拍一張到 .inspect/（可加關鍵字只跑部分）
 npm run lint         # 設計文件 + 自訂屬性 + 對比度，一次驗完
 npm run lint:design  # 檢查 DESIGN.md 是否還和程式碼對得上
 npm run lint:tokens  # 抓出打錯或漏定義的 var(--x)，以及抄了兩份的重複色值
@@ -219,6 +226,15 @@ npm run lint:contrast # 依實際堆疊順序算每一組前景／背景的 WCAG
 ```
 
 測試刻意不用「開真瀏覽器」的方式：jsdom 不執行 `<script type="module">`，所以測試是先把 DOM 裝成全域、再直接 import 同一份模組。測到的就是瀏覽器實際跑的那份程式碼。
+
+### 看畫面
+
+邏輯測試看不到「空狀態用了綠色」「提示膠囊壓住按鈕」這類問題——那些得用眼睛看。`npm run shots` 與 `npm run inspect` 都是驅動本機已安裝的 Chrome（**不下載任何瀏覽器**），塞入示範資料後把各狀態拍成 PNG：
+
+- `npm run shots` → `docs/screenshots/`，README 用的五張，會進倉庫。
+- `npm run inspect` → `.inspect/`，開發檢視用的十三張（含拖曳到一半、游標透鏡等互動狀態），不進倉庫。可以只跑一部分：`npm run inspect -- english`。
+
+截圖是**可重現的**：同一份程式碼跑兩次會產生逐位元相同的 PNG（產生器會等彈簧動畫完全停下才拍）。
 
 ### 想改設計時
 
@@ -253,7 +269,7 @@ npm run lint:contrast # 依實際堆疊順序算每一組前景／背景的 WCAG
 - **Accessible by default.** Honors `prefers-reduced-motion` and `prefers-reduced-transparency`; all touch targets are at least 44px.
 
 ```bash
-npm install && npm test    # 194 smoke tests
+npm install && npm test    # 198 smoke tests
 npm run serve              # http://localhost:4173/
 ```
 
